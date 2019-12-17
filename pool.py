@@ -17,7 +17,7 @@ class Pool:
         self.out_array = np.zeros(self._outshape)
 
     def _get_outshape(self):
-        c, w, h = inshape
+        c, h, w = inshape
         out_h = (h + 2 * self._pad - self._kw ) / self._s + 1
         out_h = math.floor(out_h)
         out_w = (w + 2 * self._pad - self._kw ) / self._s + 1
@@ -57,6 +57,7 @@ class Pool:
     def backward(self, in_grad):
         out_grad = np.zeros_like(self.pad_array)
         n, out_c, out_h, out_w = in_grad.shape
+        print(out_h, out_w)
         for h in range(out_h):
             for w in range(out_w):
                 st_w = self._s * w
@@ -73,12 +74,12 @@ if __name__ == '__main__':
     kw = 2
     s = 2
     pad = 1
-    inshape = [3, 112, 112]
+    inshape = [3, 112, 96]
     batch_size = 8
-    in_array = np.random.rand(8, 3, 112, 112)
+    in_array = np.random.rand(8, 3, 112, 96)
     pool = Pool(kw, s, pad, inshape,  batch_size)
     out_array = pool.forward(in_array)
     print(out_array.shape)
-    in_grad = np.random.rand(8, 3, 57, 57)
+    in_grad = np.random.rand(8, 3, 57, 49)
     out_grad = pool.backward(in_grad)
     print(out_grad.shape)

@@ -23,12 +23,11 @@ class Cov:
         self.weight = np.random.rand(self._out_c, self._kw, self._kw)
 
     def _get_outshape(self):
-        in_c, in_w, in_h = self._inshape
+        in_c, in_h, in_w = self._inshape
         out_w = (in_w + 2 * self._pad - self._kw) / self._s + 1
         out_w = math.floor(out_w)
         out_h = (in_h + 2 * self._pad - self._kw) / self._s + 1
         out_h = math.floor(out_h)
-        print(out_h, out_w)
         self._outshape = [self._batch_size, self._out_c, out_h, out_w]
 
     def _padding(self, array):
@@ -50,7 +49,6 @@ class Cov:
     def forward(self, in_array):
         _, out_c, out_h, out_w = self._outshape
         pad_array = self._padding(in_array)
-        print(pad_array.shape)
         self.pad_array = pad_array
         for c in range(out_c):
             for h in range(out_h):
@@ -59,8 +57,6 @@ class Cov:
                     st_h = self._s * h
                     ed_w = st_w + self._kw
                     ed_h = st_h + self._kw
-                    print(st_w, ed_w)
-                    print(pad_array[:, :, st_h:ed_h, st_w:ed_w].shape)
                     mul = pad_array[:, :, st_h:ed_h, st_w:ed_w] * self.weight[c, :, :]
                     mul_sum = np.sum(mul, axis=(1, 2, 3))
                     self.out_array[:, c, h, w] =  mul_sum
@@ -86,8 +82,8 @@ class Cov:
         out_grad = np.zeros_like(self.pad_array)
         n, out_c, out_h, out_w = self._outshape
         for c in range(out_c):
-            for w in range(out_h):
-                for h in range(out_w):
+            for h in range(out_h):
+                for w in range(out_w):
                     st_w = self._s * w
                     st_h = self._s * h
                     ed_w = st_w + self._kw
@@ -102,7 +98,7 @@ if __name__ == '__main__':
     inshape = [3, 112, 96]
     conv = Cov(3, 1, 2, 8, 0.1, inshape, 16)
     in_array = np.random.rand(16, 3, 112, 96)
-    in_grad = np.random.rand(16, 8, 56, 56)
+    in_grad = np.random.rand(16, 8, 56, 48)
     out_array = conv.forward(in_array)
     print(out_array.shape)
     out_grad = conv.backward(in_grad)
