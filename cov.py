@@ -7,12 +7,11 @@ import numpy as np
 
 class Cov:
 
-    def __init__(self, kw, pad, s, out_c, lr, inshape, batch_size):
+    def __init__(self, kw, pad, s, out_c, inshape, batch_size):
         self._kw = kw
         self._pad = pad
         self._s = s
         self._out_c = out_c
-        self._lr = lr
         self._init_weight()
         self._inshape = inshape
         self._batch_size = batch_size
@@ -62,7 +61,7 @@ class Cov:
                     self.out_array[:, c, h, w] =  mul_sum
         return self.out_array
 
-    def update(self, in_grad):
+    def update(self, in_grad, lr):
         n, out_c, out_h, out_w = self._outshape 
         w_delta = np.zeros((self._out_c, self._kw, self._kw))
         for c in range(out_c):
@@ -73,10 +72,10 @@ class Cov:
                     ed_w = st_w + self._kw
                     ed_h = st_h + self._kw
                     mul = in_grad[:, c, h, w].reshape(n, 1, 1, 1) * self.pad_array[:, :, 
-                          st_w:ed_w, st_h:ed_h]
+                          st_h:ed_h, st_w:ed_w]
                     mul_sum = np.sum(mul, (0, 1))
                     w_delta[c, :, :] += mul_sum
-        self.weight = self.weight - self._lr * w_delta
+        self.weight = self.weight - lr * w_delta
 
     def backward(self, in_grad):
         out_grad = np.zeros_like(self.pad_array)
@@ -96,10 +95,11 @@ class Cov:
 
 if __name__ == '__main__':
     inshape = [3, 112, 96]
-    conv = Cov(3, 1, 2, 8, 0.1, inshape, 16)
+    conv = Cov(3, 1, 2, 8,  inshape, 16)
     in_array = np.random.rand(16, 3, 112, 96)
     in_grad = np.random.rand(16, 8, 56, 48)
     out_array = conv.forward(in_array)
     print(out_array.shape)
     out_grad = conv.backward(in_grad)
     print(out_grad.shape)
+    conv.update(in_grad, lr=0.1)
