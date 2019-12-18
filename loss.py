@@ -11,9 +11,6 @@ class Softmax:
         self._class_num = class_num
         self.update_weight = False
         self._init_params = {'class_num':class_num}
-
-    def set_bs(self, batch_size=1):
-        self._batch_size = batch_size
         self._label_eye = np.eye(self._class_num)
     
     def get_params(self):
@@ -22,9 +19,10 @@ class Softmax:
         return params
     
     def forward(self, in_array):
+        n, _ = in_array.shape
         x_exp = np.exp(in_array)
-        x_sum = np.sum(x_exp, axis=1).reshape(self._batch_size, 1)
-        x_sum = np.broadcast_to(x_sum, (self._batch_size, self._class_num))
+        x_sum = np.sum(x_exp, axis=1).reshape(n, 1)
+        x_sum = np.broadcast_to(x_sum, (n, self._class_num))
         out_pro = x_exp / x_sum
         self._out_pro = out_pro
         return out_pro
@@ -35,12 +33,10 @@ class Softmax:
         return out_grad
     
 
-def acc(pred, labels):
+def acc(pred, labels, class_num):
     n = labels.shape[0]
-    label_eye = np.eye(n)
+    label_eye = np.eye(class_num)
     label_hot = label_eye[labels]
     right_num = np.sum(np.where(label_hot==np.where(pred>0.5)))
     acc = right_num / n
     return acc
-    
-    

@@ -14,12 +14,10 @@ class Linear:
         self._init_params = {'dim':dim, 'class_num':class_num}
         self.init_weight()
 
-    def set_bs(self, batch_size=1):
-        self._batch_size = batch_size
-
     def init_weight(self, weight=None):
         if weight == None:
-            self._weight = np.random.rand(self._dim, self._class_num)
+            size = (self._dim, self._class_num)
+            self._weight = np.random.normal(loc=0.0, scale=1.0, size=size) / 10.0
         else:
             self._weight = np.array(weight)
 
@@ -31,11 +29,11 @@ class Linear:
 
     def forward(self, in_array):
         self.in_array = in_array
-        print(in_array.shape)
         out_array = np.dot(in_array, self._weight)
         return out_array
 
     def update(self, in_grad, lr):
+        print(in_grad)
         w_delta = np.dot(self.in_array.transpose(), in_grad)
         self._weight -= lr *  self._weight 
         

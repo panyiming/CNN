@@ -22,7 +22,7 @@ class DataLoader:
         imgnum = 0
         with open(self._path) as f:
             for l in f:
-                path, label = l.strip().split('\t')
+                idx, label, path = l.strip().split('\t')
                 label = int(label)
                 self._path_labels.append([path, label])
                 imgnum += 1
@@ -33,17 +33,17 @@ class DataLoader:
         self._b_st = 0
 
     def _read_imgs(self, path):
-        in_h, in_w = self._inshape
+        c, in_h, in_w = self._inshape
         im = cv2.imread(path)
         im = cv2.resize(im, (in_w, in_h))
-        im = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
         return im
 
     def _transform(self, im_array, mean=[0.5, 0.5, 0.5], 
                    std=[0.5, 0.5, 0.5]):
-        images = np.asarray(im_array, dtype=np.float32)
-        im_array = np.transpose(im_array, (0, 3, 1, 2))
+        im_array = np.array(im_array)
         im_array = ((im_array / 255.0) - mean) / std
+        im_array = np.transpose(im_array, (0, 3, 1, 2))
         return im_array
 
     def load_imgs(self):

@@ -26,11 +26,13 @@ class Cov:
     
     def init_weight(self, weight=None):
         if weight == None:
-            self.weight = np.random.rand(self._out_c, self._kw, self._kw)
+            size = (self._out_c, self._kw, self._kw)
+            self.weight = np.random.normal(loc=0.0, scale=1.0, size=size) / 10.0
         else:
             self.weight =np.array(weight)
 
     def get_params(self):
+        params = {}
         params['class'] = 'Cov'
         params['weight'] = self.weight.tolist()
         params['init_params'] = self._init_params
@@ -62,9 +64,11 @@ class Cov:
         return array
     
     def forward(self, in_array):
-        _, out_c, out_h, out_w = self._outshape
+        out_c, out_h, out_w = self._outshape
+        n, _, _, _ = in_array.shape
         pad_array = self._padding(in_array)
         self.pad_array = pad_array
+        out_array = np.zeros((n, out_c, out_h, out_w))
         for c in range(out_c):
             for h in range(out_h):
                 for w in range(out_w):
@@ -74,11 +78,12 @@ class Cov:
                     ed_h = st_h + self._kw
                     mul = pad_array[:, :, st_h:ed_h, st_w:ed_w] * self.weight[c, :, :]
                     mul_sum = np.sum(mul, axis=(1, 2, 3))
-                    self.out_array[:, c, h, w] =  mul_sum
-        return self.out_array
+                    out_array[:, c, h, w] =  mul_sum
+        return out_array
 
     def update(self, in_grad, lr):
-        n, out_c, out_h, out_w = self._outshape 
+        n = in_grad.shape[0]
+        out_c, out_h, out_w = self._outshape 
         w_delta = np.zeros((self._out_c, self._kw, self._kw))
         for c in range(out_c):
             for h  in range(out_h):
@@ -94,8 +99,9 @@ class Cov:
         self.weight = self.weight - lr * w_delta
 
     def backward(self, in_grad):
+        n = in_grad.shape[0]
         out_grad = np.zeros_like(self.pad_array)
-        n, out_c, out_h, out_w = self._outshape
+        out_c, out_h, out_w = self._outshape
         for c in range(out_c):
             for h in range(out_h):
                 for w in range(out_w):

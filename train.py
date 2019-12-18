@@ -2,7 +2,6 @@
 # train main file
 
 import argparse
-from importlib import import_module
 from optimizer import train_main
 
 
@@ -29,7 +28,7 @@ def get_config():
     config.add_argument('--epoch', type=int,
                          default=20, 
                          help='epoch number')
-    config.add_argument('--num-class', type=int,
+    config.add_argument('--class-num', type=int,
                          default=10, 
                          help='class number')
     config.add_argument('--lr', type=float,
@@ -39,7 +38,7 @@ def get_config():
                          default='5,10,15', 
                          help='epoch number')
 
-    config = parser.parse_args()
+    config = config.parse_args()
     config.inshape = [int(i) for i in config.inshape.split(',')]
     config.step_epoch = [int(i) for i in config.step_epoch.split(',')]
     return config
