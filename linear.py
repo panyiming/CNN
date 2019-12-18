@@ -31,6 +31,7 @@ class Linear:
 
     def forward(self, in_array):
         self.in_array = in_array
+        print(in_array.shape)
         out_array = np.dot(in_array, self._weight)
         return out_array
 

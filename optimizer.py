@@ -11,11 +11,12 @@ from loss import Softmax, acc
 class Network:
 
     def __init__(self, layers, batch_size):
-        self.layers = layers
+        self._layers = layers
+        self._layer_num = len(layers)
         self.set_batch(batch_size)
     
     def set_batch(self, batch_size):
-        for l in layers:
+        for l in self._layers:
             l.set_bs(batch_size)
 
     def forward(self, in_array):
@@ -23,9 +24,11 @@ class Network:
             in_array = l.forward(in_array)
         return in_array
 
-    def backward(self, labels):
-        in_grad = labels
-        for l in self._layers:
+    def backward(self, labels, lr):
+        in_grad = labels 
+        for idx in range(self._layer_num):
+            layer_idx = self._layer_num - 1 - idx
+            l = self._layers[layer_idx]
             out_grad = l.backward(in_grad)
             if l.update_weight:
                 l.update(in_grad, lr)
@@ -74,13 +77,14 @@ def train(layers, img_paths, inshape,
         for imgs, labels in dataloader.load_imgs:
             pred = net.forward(imgs)
             acc = acc(pred, labels)
+            print(acc)
             net.backward(labels)
         save(net, epoch_i, model_name, save_root)
 
 
 def train_main(conf):
     net = import_module(conf.net)
-    layers =  net.get_layers()
+    layers =  net.get_layers(conf.inshape, conf.class_num)
     train(layers, conf.img_paths, conf.inshape,
           conf.model_name, conf.save_root, 
           conf.batch_size, conf.epoch, conf.lr, conf.step_epoch)

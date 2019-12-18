@@ -9,13 +9,12 @@ class Softmax:
 
     def __init__(self, class_num):
         self._class_num = class_num
-        self._batch_size = batch_size
-        self._label_eye = np.eye(batch_size)
         self.update_weight = False
         self._init_params = {'class_num':class_num}
 
     def set_bs(self, batch_size=1):
         self._batch_size = batch_size
+        self._label_eye = np.eye(self._class_num)
     
     def get_params(self):
         params = {'class':'Softmax'}
@@ -24,7 +23,7 @@ class Softmax:
     
     def forward(self, in_array):
         x_exp = np.exp(in_array)
-        x_sum = np.sum(x_exp, axis=1).reshape(batch_size, 1)
+        x_sum = np.sum(x_exp, axis=1).reshape(self._batch_size, 1)
         x_sum = np.broadcast_to(x_sum, (self._batch_size, self._class_num))
         out_pro = x_exp / x_sum
         self._out_pro = out_pro

@@ -17,8 +17,9 @@ class Pool:
 
     def set_bs(self, batch_size=1):
         self._batch_size = batch_size
-        self._get_outshape()
-        self.out_array = np.zeros(self._outshape)
+        outshape = self._get_outshape()
+        outshape.insert(0, batch_size)
+        self.out_array = np.zeros(outshape)
     
     def get_params(self):
         params = {'class':'Pool'}
@@ -26,12 +27,13 @@ class Pool:
         return params
     
     def _get_outshape(self):
-        c, h, w = inshape
+        c, h, w = self._inshape
         out_h = (h + 2 * self._pad - self._kw ) / self._s + 1
         out_h = math.floor(out_h)
         out_w = (w + 2 * self._pad - self._kw ) / self._s + 1
         out_w = math.floor(out_w)
-        self._outshape = [self._batch_size, c, out_h, out_w]
+        self._outshape = [c, out_h, out_w]
+        return self._outshape
     
     def _padding(self, array):
         p_w = self._pad

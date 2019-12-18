@@ -2,7 +2,7 @@
 # flatten layer
 
 
-class Flatten(self):
+class Flatten:
 
     def __init__(self, inshape):
         self._inshape = inshape

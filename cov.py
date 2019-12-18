@@ -20,8 +20,9 @@ class Cov:
 
     def set_bs(self, batch_size=1):
         self._batch_size = batch_size
-        self._get_outshape()
-        self.out_array = np.zeros(self._outshape)
+        out_shape = self._get_outshape()
+        out_shape.insert(0, batch_size)
+        self.out_array = np.zeros(out_shape)
     
     def init_weight(self, weight=None):
         if weight == None:
@@ -41,7 +42,8 @@ class Cov:
         out_w = math.floor(out_w)
         out_h = (in_h + 2 * self._pad - self._kw) / self._s + 1
         out_h = math.floor(out_h)
-        self._outshape = [self._batch_size, self._out_c, out_h, out_w]
+        self._outshape = [self._out_c, out_h, out_w]
+        return self._outshape
 
     def _padding(self, array):
         p_w = self._pad
