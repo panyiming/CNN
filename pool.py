@@ -57,7 +57,6 @@ class Pool:
     def backward(self, in_grad):
         out_grad = np.zeros_like(self.pad_array)
         n, out_c, out_h, out_w = in_grad.shape
-        print(out_h, out_w)
         for h in range(out_h):
             for w in range(out_w):
                 st_w = self._s * w
