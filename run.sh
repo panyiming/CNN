@@ -1,0 +1,10 @@
+python train.py \
+    --imgs-path './train_10cls.lst' \
+    --net 'testmodel' \
+    --inshape '3,28,28' \
+    --save-root './' \
+    --batch-size 16 \
+    --epoch 20 \
+    --class-num 10 \
+    --lr 0.01 \
+    --step-epoch '5,10,15' \
