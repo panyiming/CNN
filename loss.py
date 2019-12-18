@@ -2,6 +2,9 @@
 # softmax layer
 
 
+import numpy as np
+
+
 class Softmax:
 
     def __init__(self, class_num, batch_size):
@@ -12,7 +15,7 @@ class Softmax:
     def forward(self, in_array):
         x_exp = np.exp(in_array)
         x_sum = np.sum(x_exp, axis=1).reshape(batch_size, 1)
-        x_sum = np.broadcast_to(x_sum, (8, 12))
+        x_sum = np.broadcast_to(x_sum, (self._batch_size, self._class_num))
         out_pro = x_exp / x_sum
         self._out_pro = out_pro
         return out_pro
