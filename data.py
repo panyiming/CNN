@@ -13,10 +13,11 @@ class DataLoader:
         self._path = path
         self._inshape = inshape
         self._batch_size = batch_size
+        self._b_st = 0
         self._parse_imgs_label()
 
     def _parse_imgs_label(self):
-        self._path_labels = []i
+        self._path_labels = []
         self._idx = []
         imgnum = 0
         with open(self._path) as f:
@@ -27,8 +28,9 @@ class DataLoader:
                 imgnum += 1
         self._imgnum = imgnum
 
-    def _shuffle(self):
+    def reset(self):
         random.shuffle(self._path_labels)
+        self._b_st = 0
 
     def _read_imgs(self, path):
         in_h, in_w = self._inshape
@@ -44,8 +46,8 @@ class DataLoader:
         im_array = ((im_array / 255.0) - mean) / std
         return im_array
 
-    def _load_imgs(self):
-        b_st = 0
+    def load_imgs(self):
+        b_st = self._b_st
         while b_st < self._imgnum:
             imgs = []
             labels = []

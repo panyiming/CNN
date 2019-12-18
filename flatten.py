@@ -4,9 +4,18 @@
 
 class Flatten(self):
 
-    def __init__(self, inshape, batch_size):
+    def __init__(self, inshape):
         self._inshape = inshape
+        self.update_weight = False
+        self._init_params = {'inshape':inshape}
+    
+    def set_bs(self, batch_size=1):
         self._batch_size = batch_size
+    
+    def get_params(self):
+        params = {'class':'Flatten'}
+        params['init_params'] = self._init_params
+        return params
 
     def forward(self, in_array):
         c, h, w = self._inshape

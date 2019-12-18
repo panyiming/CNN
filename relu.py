@@ -10,7 +10,17 @@ class Relu:
 
     def __init__(self, inshape):
         self._neg_idx = None
+        self.update_weight = False
+        self._init_params = {'inshape':inshape}
         
+    def set_bs(self, batch_size=1):
+        self._batch_size = batch_size
+    
+    def get_params(self):
+        params = {'class':'Relu'}
+        params['init_params'] = self._init_params
+        return params
+    
     def forward(self, in_array):
         self._neg_idx = np.where(in_array<0)
         in_array[self._neg_idx] = 0

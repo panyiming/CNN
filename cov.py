@@ -7,19 +7,33 @@ import numpy as np
 
 class Cov:
 
-    def __init__(self, kw, pad, s, out_c, inshape, batch_size):
+    def __init__(self, kw, pad, s, out_c, inshape):
         self._kw = kw
         self._pad = pad
         self._s = s
         self._out_c = out_c
-        self._init_weight()
+        self.init_weight()
         self._inshape = inshape
+        self.update_weight = True
+        self._init_params = {'kw':kw, 'pad':pad, 's':s, 
+                             'out_c':out_c, 'inshape':inshape}
+
+    def set_bs(self, batch_size=1):
         self._batch_size = batch_size
         self._get_outshape()
         self.out_array = np.zeros(self._outshape)
+    
+    def init_weight(self, weight=None):
+        if weight == None:
+            self.weight = np.random.rand(self._out_c, self._kw, self._kw)
+        else:
+            self.weight =np.array(weight)
 
-    def _init_weight(self):
-        self.weight = np.random.rand(self._out_c, self._kw, self._kw)
+    def get_params(self):
+        params['class'] = 'Cov'
+        params['weight'] = self.weight.tolist()
+        params['init_params'] = self._init_params
+        return params
 
     def _get_outshape(self):
         in_c, in_h, in_w = self._inshape
@@ -95,7 +109,8 @@ class Cov:
 
 if __name__ == '__main__':
     inshape = [3, 112, 96]
-    conv = Cov(3, 1, 2, 8,  inshape, 16)
+    conv = Cov(3, 1, 2, 8,  inshape)
+    conv.set_bs(16)
     in_array = np.random.rand(16, 3, 112, 96)
     in_grad = np.random.rand(16, 8, 56, 48)
     out_array = conv.forward(in_array)
@@ -103,3 +118,9 @@ if __name__ == '__main__':
     out_grad = conv.backward(in_grad)
     print(out_grad.shape)
     conv.update(in_grad, lr=0.1)
+    import pickle
+    cov = pickle.dumps(conv)
+    import json
+    with open('test.json', 'w') as f:
+        f.write(str(cov)+'\n')
+

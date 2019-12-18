@@ -7,15 +7,24 @@ import numpy as np
 
 class Pool:
     
-    def __init__(self, kw, s, pad, inshape, batch_size):
+    def __init__(self, kw, s, pad, inshape):
         self._kw = kw
         self._s = s
         self._pad = pad
-        self._batch_size = batch_size
         self._inshape = inshape
+        self.update_weight = False
+        self._init_params = {'kw':kw, 'pad':pad, 's':s, 'inshape':inshape}
+
+    def set_bs(self, batch_size=1):
+        self._batch_size = batch_size
         self._get_outshape()
         self.out_array = np.zeros(self._outshape)
-
+    
+    def get_params(self):
+        params = {'class':'Pool'}
+        params['init_params'] = self._init_params
+        return params
+    
     def _get_outshape(self):
         c, h, w = inshape
         out_h = (h + 2 * self._pad - self._kw ) / self._s + 1
@@ -76,7 +85,8 @@ if __name__ == '__main__':
     inshape = [3, 112, 96]
     batch_size = 8
     in_array = np.random.rand(8, 3, 112, 96)
-    pool = Pool(kw, s, pad, inshape,  batch_size)
+    pool = Pool(kw, s, pad, inshape)
+    pool.set_bs(8)
     out_array = pool.forward(in_array)
     print(out_array.shape)
     in_grad = np.random.rand(8, 3, 57, 49)
