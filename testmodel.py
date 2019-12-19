@@ -9,7 +9,6 @@ from flatten import Flatten
 from linear import Linear
 from relu import Relu
 from loss import Softmax, acc
-from optimizer import Network
 
 
 def get_layers(inshape, class_num, dim=32):
@@ -40,16 +39,3 @@ def get_layers(inshape, class_num, dim=32):
     loss = Softmax(class_num)
     layers.append(loss)
     return layers
-
-
-if __name__ == '__main__':
-    inshape = [3, 28, 28]
-    class_num = 10
-    lr = 0.1
-    layers = get_layers(inshape, class_num)
-    net = Network(layers, 8)
-    x = np.random.rand(8, 3, 28, 28) / 1000
-    out = net.forward(x)
-    print(out.shape)
-    labels = np.array([0, 1, 2, 3, 4, 5, 6, 7])
-    net.backward(labels, lr)

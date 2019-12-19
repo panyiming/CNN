@@ -67,6 +67,7 @@ class Pool:
         return out_array
 
     def backward(self, in_grad, lr):
+        print(np.max(in_grad))
         out_grad = np.zeros_like(self.pad_array)
         n, out_c, out_h, out_w = in_grad.shape
         for h in range(out_h):
@@ -81,18 +82,3 @@ class Pool:
         out_grad = self._max_idx * out_grad
         out_grad = self._reverse_padding(out_grad)
         return out_grad
-
-if __name__ == '__main__':
-    kw = 2
-    s = 2
-    pad = 1
-    inshape = [3, 112, 96]
-    batch_size = 8
-    in_array = np.random.rand(8, 3, 112, 96)
-    pool = Pool(kw, s, pad, inshape)
-    pool.set_bs(8)
-    out_array = pool.forward(in_array)
-    print(out_array.shape)
-    in_grad = np.random.rand(8, 3, 57, 49)
-    out_grad = pool.backward(in_grad)
-    print(out_grad.shape)
