@@ -17,10 +17,9 @@ filename = os.path.basename(__file__)
 logger = logger(filename)
 
 
-def train(layers, img_paths, inshape, model_name, 
+def train(net, img_paths, inshape, model_name, 
           save_root, batch_size, epoch, lr, 
           step_epoch, class_num, log_step=10):
-    net = Network(layers)
     dataloader = DataLoader(img_paths, batch_size, inshape)
     step_num = dataloader.step_num
     for epoch_i in range(epoch):
@@ -53,9 +52,13 @@ def test(model_path, img_paths, inshape, batch_size, class_num):
 
 
 def train_main(conf):
-    net = import_module(conf.net)
-    layers =  net.get_layers(conf.inshape, conf.class_num)
-    train(layers, conf.imgs_path, conf.inshape,
+    if conf.model_path == None:
+        model_net = import_module(conf.net)
+        layers =  model_net.get_layers(conf.inshape, conf.class_num)
+        net = Network(layers)
+    else:
+        net = init_model(conf.model_path)
+    train(net, conf.imgs_path, conf.inshape,
           conf.model_name, conf.save_root, 
           conf.batch_size, conf.epoch, conf.lr,
           conf.step_epoch, conf.class_num)

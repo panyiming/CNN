@@ -7,4 +7,5 @@ python train.py \
     --epoch 30 \
     --class-num 10 \
     --lr 0.001 \
+    --model-path '/data1/dataset/face_train/test_cnn/model_name-0000.json' \
     --step-epoch '10,20,30' \
