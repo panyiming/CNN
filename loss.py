@@ -34,7 +34,6 @@ class Softmax:
     
 
 def acc(pred, labels, class_num):
-    print(pred)
     n = labels.shape[0]
     label_eye = np.eye(class_num)
     label_hot = label_eye[labels]
