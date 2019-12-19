@@ -17,8 +17,6 @@ filename = os.path.basename(__file__)
 logger = logger(filename)
 
 
-
-
 def train(layers, img_paths, inshape, model_name, 
           save_root, batch_size, epoch, lr, 
           step_epoch, class_num, log_step=10):

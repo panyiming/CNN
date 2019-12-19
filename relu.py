@@ -13,9 +13,6 @@ class Relu:
         self.update_weight = False
         self._init_params = {'inshape':inshape}
         
-    def set_bs(self, batch_size=1):
-        self._batch_size = batch_size
-    
     def get_params(self):
         params = {'class':'Relu'}
         params['init_params'] = self._init_params
