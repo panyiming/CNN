@@ -10,7 +10,6 @@ class Linear:
     def __init__(self, dim, class_num):
         self._dim = dim
         self._class_num = class_num
-        self.update_weight = True
         self._init_params = {'dim':dim, 'class_num':class_num}
         self.init_weight()
 
@@ -32,10 +31,11 @@ class Linear:
         out_array = np.dot(in_array, self._weight)
         return out_array
 
-    def update(self, in_grad, lr):
+    def _update(self, in_grad, lr):
         w_delta = np.dot(self.in_array.transpose(), in_grad)
         self._weight = self._weight - lr *  self._weight 
         
-    def backward(self, in_grad):
+    def backward(self, in_grad, lr):
         out_grad = np.dot(in_grad, self._weight.transpose())
+        self._update(in_grad, lr)
         return out_grad

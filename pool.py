@@ -12,7 +12,6 @@ class Pool:
         self._s = s
         self._pad = pad
         self._inshape = inshape
-        self.update_weight = False
         self._init_params = {'kw':kw, 'pad':pad, 's':s, 'inshape':inshape}
         self.get_outshape()
     
@@ -67,7 +66,7 @@ class Pool:
                 self._max_idx[:, :, st_h:ed_h, st_w:ed_w] = (sub_array == max_array_reshape)
         return out_array
 
-    def backward(self, in_grad):
+    def backward(self, in_grad, lr):
         out_grad = np.zeros_like(self.pad_array)
         n, out_c, out_h, out_w = in_grad.shape
         for h in range(out_h):

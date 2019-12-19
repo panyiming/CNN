@@ -14,7 +14,6 @@ class Cov:
         self._out_c = out_c
         self.init_weight()
         self._inshape = inshape
-        self.update_weight = True
         self._init_params = {'kw':kw, 'pad':pad, 's':s, 
                              'out_c':out_c, 'inshape':inshape}
         self.get_outshape()
@@ -76,7 +75,7 @@ class Cov:
                     out_array[:, c, h, w] =  mul_sum
         return out_array
 
-    def update(self, in_grad, lr):
+    def _update(self, in_grad, lr):
         n = in_grad.shape[0]
         out_c, out_h, out_w = self._outshape 
         w_delta = np.zeros((self._out_c, self._kw, self._kw))
@@ -93,7 +92,7 @@ class Cov:
                     w_delta[c, :, :] += mul_sum
         self._weight = self._weight - lr * w_delta
 
-    def backward(self, in_grad):
+    def backward(self, in_grad, lr):
         n = in_grad.shape[0]
         out_grad = np.zeros_like(self.pad_array)
         out_c, out_h, out_w = self._outshape
@@ -107,23 +106,5 @@ class Cov:
                     out_grad[:, :, st_h:ed_h, st_w:ed_w] += \
                             self._weight[c, :, :] * in_grad[ :, c, h, w].reshape(n, 1, 1, 1)
         out_grad = self._reverse_padding(out_grad)
+        self._update(in_grad, lr)
         return out_grad
-        
-
-if __name__ == '__main__':
-    inshape = [3, 112, 96]
-    conv = Cov(3, 1, 2, 8,  inshape)
-    conv.set_bs(16)
-    in_array = np.random.rand(16, 3, 112, 96)
-    in_grad = np.random.rand(16, 8, 56, 48)
-    out_array = conv.forward(in_array)
-    print(out_array.shape)
-    out_grad = conv.backward(in_grad)
-    print(out_grad.shape)
-    conv.update(in_grad, lr=0.1)
-    import pickle
-    cov = pickle.dumps(conv)
-    import json
-    with open('test.json', 'w') as f:
-        f.write(str(cov)+'\n')
-

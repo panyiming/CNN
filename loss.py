@@ -27,13 +27,14 @@ class Softmax:
         self._out_pro = out_pro
         return out_pro
 
-    def backward(self, labels):
+    def backward(self, labels, lr):
         one_hot_target = self._label_eye[labels]
         out_grad = self._out_pro - one_hot_target
         return out_grad
     
 
 def acc(pred, labels, class_num):
+    print(pred)
     n = labels.shape[0]
     label_eye = np.eye(class_num)
     label_hot = label_eye[labels]

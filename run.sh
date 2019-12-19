@@ -3,7 +3,7 @@ python train.py \
     --net 'testmodel' \
     --inshape '3,28,28' \
     --save-root '/data1/dataset/face_train/test_cnn/' \
-    --batch-size 64 \
+    --batch-size 128 \
     --epoch 30 \
     --class-num 10 \
     --lr 0.001 \

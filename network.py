@@ -26,9 +26,7 @@ class Network:
         for idx in range(self._layer_num):
             layer_idx = self._layer_num - 1 - idx
             l = self.layers[layer_idx]
-            out_grad = l.backward(in_grad)
-            if l.update_weight:
-                l.update(in_grad, lr)
+            out_grad = l.backward(in_grad, lr)
             in_grad = out_grad
 
 
@@ -49,8 +47,11 @@ def load(path):
         for l in f:
             params = json.loads(l.decode().strip())
             class_type = eval(params['class'])
-            layer = class_type(**params['init_params'])
-            if layer.update_weight:
+            if 'init_params' in params:
+                layer = class_type(**params['init_params'])
+            else:
+                layer = class_type()
+            if 'weight' in params:
                 layer.init_weight(params['weight'])
             layers.append(layer)
     return layers

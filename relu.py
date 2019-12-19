@@ -8,14 +8,11 @@ import numpy as np
 
 class Relu:
 
-    def __init__(self, inshape):
+    def __init__(self):
         self._neg_idx = None
-        self.update_weight = False
-        self._init_params = {'inshape':inshape}
         
     def get_params(self):
         params = {'class':'Relu'}
-        params['init_params'] = self._init_params
         return params
     
     def forward(self, in_array):
@@ -23,6 +20,6 @@ class Relu:
         in_array[self._neg_idx] = 0
         return in_array
 
-    def backward(self, in_grad):
+    def backward(self, in_grad, lr):
         in_grad[self._neg_idx] = 0
         return in_grad
