@@ -5,79 +5,53 @@
 import os
 import json
 import numpy as np
-from cov import Cov
-from pool import Pool
-from flatten import Flatten
-from linear import Linear
 from data import DataLoader
-from loss import Softmax, acc
 from importlib import import_module
-
-class Network:
-
-    def __init__(self, layers):
-        self.layers = layers
-        self._layer_num = len(layers)
-    
-    def forward(self, in_array):
-        for l in self.layers:
-            in_array = l.forward(in_array)
-        return in_array
-
-    def backward(self, labels, lr):
-        in_grad = labels 
-        for idx in range(self._layer_num):
-            layer_idx = self._layer_num - 1 - idx
-            l = self.layers[layer_idx]
-            out_grad = l.backward(in_grad)
-            if l.update_weight:
-                l.update(in_grad, lr)
-            in_grad = out_grad
+from loss import acc
+from tqdm import tqdm
+from mylog import logger
+from network import Network, load, save, init_model
 
 
-def save(net, epoch, model_name, save_root):
-    model_name = model_name + str(epoch).zfill(4)+'.json'
-    file_path = os.path.join(save_root, model_name)
-    idx = 0
-    with open(file_path, 'w') as f:
-        for l in net.layers:
-            l_params = l.get_params()
-            f.write(json.dumps(l_params)+'\n')
-            idx += 1
+filename = os.path.basename(__file__)
+logger = logger(filename)
 
 
-def load(path):
-    layers = []
-    with open(path, 'rb') as f:
-        for l in f:
-            parms = json.loads(l.decode().strip())
-            class_type = eval(params['class'])
-            layer = class_type(**params['init_params'])
-            if layer.update_weight:
-                layer.init_weight(params['weight'])
-            layers.append(layer)
-    return layers
 
 
-def init_model(model_path, batch_size):
-    layers = load(model_path)
-    net = Network(layers, batch_size)
-    return net
-
-
-def train(layers, img_paths, inshape, 
-          model_name, save_root, batch_size, 
-          epoch, lr, step_epoch, class_num):
+def train(layers, img_paths, inshape, model_name, 
+          save_root, batch_size, epoch, lr, 
+          step_epoch, class_num, log_step=10):
     net = Network(layers)
     dataloader = DataLoader(img_paths, batch_size, inshape)
+    step_num = dataloader.step_num
     for epoch_i in range(epoch):
         dataloader.reset()
+        step = 0
         for imgs, labels in dataloader.load_imgs():
+            step += 1
             pred = net.forward(imgs)
             ac = acc(pred, labels, class_num)
-            print(ac)
+            if step % log_step == 0:
+                logger.info('[{}/{}]=======[{}/{}]=========[{}]'.format(
+                            epoch_i, epoch, step, step_num,  ac))
             net.backward(labels, lr)
         save(net, epoch_i, model_name, save_root)
+
+
+def test(model_path, img_paths, inshape, batch_size, class_num):
+    net = init_model(model_path)
+    dataloader = DataLoader(img_paths, batch_size, inshape)
+    accs = []
+    step_num = dataloader.step_num
+    pbar = tqdm(total=step_num)
+    for imgs, labels in dataloader.load_imgs():
+        pbar.update(1)
+        pred = net.forward(imgs)
+        ac = acc(pred, labels, class_num)
+        accs.append(ac)
+    acc_all = np.mean(np.array(accs))
+    logger.info('th acc is {}'.format(acc_all))
 
 
 def train_main(conf):
@@ -87,3 +61,7 @@ def train_main(conf):
           conf.model_name, conf.save_root, 
           conf.batch_size, conf.epoch, conf.lr,
           conf.step_epoch, conf.class_num)
+
+def test_main(conf):
+    test(conf.model_path, conf.imgs_path, 
+         conf.inshape, conf.batch_size, conf.class_num)

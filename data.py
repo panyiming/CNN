@@ -4,6 +4,7 @@
 
 import cv2
 import random
+import math
 import numpy as np
 
 
@@ -26,6 +27,7 @@ class DataLoader:
                 label = int(label)
                 self._path_labels.append([path, label])
                 imgnum += 1
+        self.step_num = math.floor(imgnum / self._batch_size) + 1
         self._imgnum = imgnum
 
     def reset(self):

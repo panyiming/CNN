@@ -17,28 +17,23 @@ class Cov:
         self.update_weight = True
         self._init_params = {'kw':kw, 'pad':pad, 's':s, 
                              'out_c':out_c, 'inshape':inshape}
-
-    def set_bs(self, batch_size=1):
-        self._batch_size = batch_size
-        out_shape = self._get_outshape()
-        out_shape.insert(0, batch_size)
-        self.out_array = np.zeros(out_shape)
+        self.get_outshape()
     
     def init_weight(self, weight=None):
         if weight == None:
             size = (self._out_c, self._kw, self._kw)
-            self.weight = np.random.normal(loc=0.0, scale=1.0, size=size) / 10.0
+            self._weight = np.random.normal(loc=0.0, scale=0.1, size=size)
         else:
-            self.weight =np.array(weight)
+            self._weight =np.array(weight)
 
     def get_params(self):
         params = {}
         params['class'] = 'Cov'
-        params['weight'] = self.weight.tolist()
+        params['weight'] = self._weight.tolist()
         params['init_params'] = self._init_params
         return params
 
-    def _get_outshape(self):
+    def get_outshape(self):
         in_c, in_h, in_w = self._inshape
         out_w = (in_w + 2 * self._pad - self._kw) / self._s + 1
         out_w = math.floor(out_w)
@@ -76,7 +71,7 @@ class Cov:
                     st_h = self._s * h
                     ed_w = st_w + self._kw
                     ed_h = st_h + self._kw
-                    mul = pad_array[:, :, st_h:ed_h, st_w:ed_w] * self.weight[c, :, :]
+                    mul = pad_array[:, :, st_h:ed_h, st_w:ed_w] * self._weight[c, :, :]
                     mul_sum = np.sum(mul, axis=(1, 2, 3))
                     out_array[:, c, h, w] =  mul_sum
         return out_array
@@ -96,7 +91,7 @@ class Cov:
                           st_h:ed_h, st_w:ed_w]
                     mul_sum = np.sum(mul, (0, 1))
                     w_delta[c, :, :] += mul_sum
-        self.weight = self.weight - lr * w_delta
+        self._weight = self._weight - lr * w_delta
 
     def backward(self, in_grad):
         n = in_grad.shape[0]
@@ -110,7 +105,7 @@ class Cov:
                     ed_w = st_w + self._kw
                     ed_h = st_h + self._kw
                     out_grad[:, :, st_h:ed_h, st_w:ed_w] += \
-                            self.weight[c, :, :] * in_grad[ :, c, h, w].reshape(n, 1, 1, 1)
+                            self._weight[c, :, :] * in_grad[ :, c, h, w].reshape(n, 1, 1, 1)
         out_grad = self._reverse_padding(out_grad)
         return out_grad
         

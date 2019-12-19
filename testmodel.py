@@ -12,28 +12,31 @@ from loss import Softmax, acc
 from optimizer import Network
 
 
-def get_layers(inshape, class_num, dim=256):
+def get_layers(inshape, class_num, dim=32):
     layers = []
     cov1 = Cov(5, 0, 1, 6, inshape)
     layers.append(cov1)
-    inshape = cov1._get_outshape()
+    inshape = cov1.get_outshape()
     relu1 = Relu(inshape)
     layers.append(relu1)
     pool1 = Pool(2, 2, 0, inshape)
     layers.append(pool1)
-    inshape = pool1._get_outshape()
+    inshape = pool1.get_outshape()
     cov2 = Cov(5, 0, 1, 16, inshape)
     layers.append(cov2)
-    inshape = cov2._get_outshape() 
+    inshape = cov2.get_outshape() 
     relu2 = Relu(inshape)
     layers.append(relu2)
     pool2 = Pool(2, 2, 0, inshape)
     layers.append(pool2)
-    inshape = pool2._get_outshape()
+    inshape = pool2.get_outshape()
     flatten = Flatten(inshape)
     layers.append(flatten)
-    linear = Linear(dim, class_num)
-    layers.append(linear)
+    inshape = flatten.get_outshape()
+    linear1 = Linear(inshape, dim)
+    layers.append(linear1)
+    linear2 = Linear(dim, class_num)
+    layers.append(linear2)
     loss = Softmax(class_num)
     layers.append(loss)
     return layers

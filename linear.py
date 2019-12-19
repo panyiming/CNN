@@ -17,7 +17,7 @@ class Linear:
     def init_weight(self, weight=None):
         if weight == None:
             size = (self._dim, self._class_num)
-            self._weight = np.random.normal(loc=0.0, scale=1.0, size=size) / 10.0
+            self._weight = np.random.normal(loc=0.0, scale=0.1, size=size)
         else:
             self._weight = np.array(weight)
 
@@ -33,9 +33,8 @@ class Linear:
         return out_array
 
     def update(self, in_grad, lr):
-        print(in_grad)
         w_delta = np.dot(self.in_array.transpose(), in_grad)
-        self._weight -= lr *  self._weight 
+        self._weight = self._weight - lr *  self._weight 
         
     def backward(self, in_grad):
         out_grad = np.dot(in_grad, self._weight.transpose())

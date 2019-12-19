@@ -37,6 +37,7 @@ def acc(pred, labels, class_num):
     n = labels.shape[0]
     label_eye = np.eye(class_num)
     label_hot = label_eye[labels]
-    right_num = np.sum(np.where(label_hot==np.where(pred>0.5)))
+    a = (label_hot>0)==(pred>0.5)
+    right_num = np.sum((label_hot>0)&(pred>0.5))
     acc = right_num / n
     return acc
