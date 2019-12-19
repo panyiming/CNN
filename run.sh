@@ -1,4 +1,4 @@
-python train.py \
+python main.py \
     --imgs-path '/data1/dataset/face_train/test_cnn/data/train.ls' \
     --net 'testmodel' \
     --inshape '3,28,28' \
@@ -6,6 +6,6 @@ python train.py \
     --batch-size 128 \
     --epoch 30 \
     --class-num 10 \
-    --lr 0.001 \
-    --model-path '/data1/dataset/face_train/test_cnn/model_name-0000.json' \
+    --lr 0.0001 \
+    --model-path '/data1/dataset/face_train/test_cnn/model_name-0001.json' \
     --step-epoch '10,20,30' \
