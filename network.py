@@ -25,8 +25,7 @@ class Network:
         in_grad = labels 
         for idx in range(self._layer_num):
             layer_idx = self._layer_num - 1 - idx
-            l = self.layers[layer_idx]
-            out_grad = l.backward(in_grad, lr)
+            out_grad = self.layers[layer_idx].backward(in_grad, lr)
             in_grad = out_grad
 
 
