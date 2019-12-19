@@ -52,19 +52,24 @@ class Pool:
         return array
 
     def forward(self, in_array):
-        n, _, _, _  = in_array.shape
+        n, in_c, _, _  = in_array.shape
         out_c, out_h, out_w = self._outshape
         pad_array = self._padding(in_array)
         self.pad_array = pad_array
         out_array = np.zeros((n, out_c, out_h, out_w))
+        self._max_idx = np.zeros_like(pad_array, dtype=np.int32)
         for h in range(out_h):
             for w in range(out_w):
                 st_w = self._s * w
                 st_h = self._s * h
                 ed_w = st_w + self._kw
                 ed_h = st_h + self._kw
-                max_cell = np.max(pad_array[:, :, st_h:ed_h, st_w:ed_w], axis=(2, 3))
-                out_array[:, :, h, w] = max_cell.reshape(n, out_c)
+                sub_array = pad_array[:, :, st_h:ed_h, st_w:ed_w]
+                max_array = np.max(pad_array[:, :, st_h:ed_h, st_w:ed_w], axis=(2, 3))
+                out_array[:, :, h, w] = max_array.reshape(n, out_c)
+                sub_shape = sub_array.shape
+                max_array_reshape = np.broadcast_to(max_array.reshape(n, in_c, 1, 1), sub_shape)
+                self._max_idx[:, :, st_h:ed_h, st_w:ed_w] = (sub_array == max_array_reshape)
         return out_array
 
     def backward(self, in_grad):
@@ -79,6 +84,7 @@ class Pool:
                 grad_sub = in_grad[:, :, h, w].reshape(n, out_c, 1, 1)
                 grad_sub = np.broadcast_to(grad_sub, (n, out_c, self._kw, self._kw))
                 out_grad[:, :, st_h:ed_h, st_w:ed_w] = grad_sub
+        out_grad = self._max_idx * out_grad
         out_grad = self._reverse_padding(out_grad)
         return out_grad
 
