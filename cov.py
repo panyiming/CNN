@@ -12,15 +12,16 @@ class Cov:
         self._pad = pad
         self._s = s
         self._out_c = out_c
-        self.init_weight()
         self._inshape = inshape
         self._init_params = {'kw':kw, 'pad':pad, 's':s, 
                              'out_c':out_c, 'inshape':inshape}
+        self.init_weight()
         self.get_outshape()
     
     def init_weight(self, weight=None):
         if weight == None:
-            size = (self._out_c, self._kw, self._kw)
+            in_c = self._inshape[0]
+            size = (self._out_c, in_c, self._kw, self._kw)
             self._weight = np.random.normal(loc=0.0, scale=0.1, size=size)
         else:
             self._weight =np.array(weight)
@@ -58,53 +59,65 @@ class Cov:
         return array
     
     def forward(self, in_array):
+        n = in_array.shape[0]
+        in_c = self._inshape[0]
         out_c, out_h, out_w = self._outshape
-        n, _, _, _ = in_array.shape
-        pad_array = self._padding(in_array)
-        self.pad_array = pad_array
+        self._pad_array = self._padding(in_array)
         out_array = np.zeros((n, out_c, out_h, out_w))
-        for c in range(out_c):
-            for h in range(out_h):
-                for w in range(out_w):
-                    st_w = self._s * w
-                    st_h = self._s * h
-                    ed_w = st_w + self._kw
-                    ed_h = st_h + self._kw
-                    mul = pad_array[:, :, st_h:ed_h, st_w:ed_w] * self._weight[c, :, :]
-                    mul_sum = np.sum(mul, axis=(1, 2, 3))
-                    out_array[:, c, h, w] =  mul_sum
+        for c_out in range(out_c):
+            for c_in in range(in_c):
+                for h in range(out_h):
+                    for w in range(out_w):
+                        st_w = self._s * w
+                        st_h = self._s * h
+                        ed_w = st_w + self._kw
+                        ed_h = st_h + self._kw
+                        sub_array = self._pad_array[:, c_in, st_h:ed_h, st_w:ed_w]
+                        sub_weight = self._weight[c_out, c_in, :, :]
+                        mul = sub_array *  sub_weight
+                        mul_sum = np.sum(mul, axis=(1, 2))
+                        out_array[:, c_out, h, w]  +=  mul_sum
         return out_array
 
     def _update(self, in_grad, lr):
         n = in_grad.shape[0]
+        in_c = self._inshape[0]
         out_c, out_h, out_w = self._outshape 
-        w_delta = np.zeros((self._out_c, self._kw, self._kw))
-        for c in range(out_c):
-            for h  in range(out_h):
-                for w in range(out_w):
-                    st_w = self._s * w
-                    st_h = self._s * h
-                    ed_w = st_w + self._kw
-                    ed_h = st_h + self._kw
-                    mul = in_grad[:, c, h, w].reshape(n, 1, 1, 1) * self.pad_array[:, :, 
-                          st_h:ed_h, st_w:ed_w]
-                    mul_sum = np.sum(mul, (0, 1))
-                    w_delta[c, :, :] += mul_sum
+        w_delta = np.zeros((self._out_c, in_c, self._kw, self._kw))
+        for c_out in range(out_c):
+            for c_in in range(in_c):
+                for h  in range(out_h):
+                    for w in range(out_w):
+                        st_w = self._s * w
+                        st_h = self._s * h
+                        ed_w = st_w + self._kw
+                        ed_h = st_h + self._kw
+                        sub_array = self._pad_array[:, c_in, st_h:ed_h, st_w:ed_w]
+                        sub_ingrad = in_grad[:, c_out, h, w].reshape(n, 1, 1)
+                        sub_ingrad = np.broadcast_to(sub_ingrad, (n, self._kw, self._kw))
+                        mul = sub_ingrad * sub_array
+                        mul_sum = np.sum(mul, (0))
+                        w_delta[c_out, c_in, :, :] += mul_sum
         self._weight = self._weight - lr * w_delta
 
     def backward(self, in_grad, lr):
         n = in_grad.shape[0]
-        out_grad = np.zeros_like(self.pad_array)
+        in_c = self._inshape[0]
+        out_grad = np.zeros_like(self._pad_array)
         out_c, out_h, out_w = self._outshape
-        for c in range(out_c):
-            for h in range(out_h):
-                for w in range(out_w):
-                    st_w = self._s * w
-                    st_h = self._s * h
-                    ed_w = st_w + self._kw
-                    ed_h = st_h + self._kw
-                    out_grad[:, :, st_h:ed_h, st_w:ed_w] += \
-                            self._weight[c, :, :] * in_grad[ :, c, h, w].reshape(n, 1, 1, 1)
+        for c_out in range(out_c):
+            for c_in in range(in_c):
+                for h in range(out_h):
+                    for w in range(out_w):
+                        st_w = self._s * w
+                        st_h = self._s * h
+                        ed_w = st_w + self._kw
+                        ed_h = st_h + self._kw
+                        sub_weight = self._weight[c_out, c_in, :, :]
+                        sub_ingrad = in_grad[ :, c_out, h, w ].reshape(n, 1, 1)
+                        sub_ingrad = np.broadcast_to(sub_ingrad, (n, self._kw, self._kw))
+                        mul = sub_weight * sub_ingrad
+                        out_grad[:, c_in, st_h:ed_h, st_w:ed_w] += mul
         out_grad = self._reverse_padding(out_grad)
         self._update(in_grad, lr)
         return out_grad
