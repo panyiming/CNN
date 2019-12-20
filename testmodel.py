@@ -11,7 +11,7 @@ from relu import Relu
 from loss import Softmax, acc
 
 
-def get_layers(inshape, class_num, dim=32):
+def get_layers(inshape, class_num, dim=10):
     layers = []
     cov1 = Cov(5, 0, 1, 6, inshape)
     layers.append(cov1)
