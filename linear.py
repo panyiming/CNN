@@ -33,7 +33,7 @@ class Linear:
 
     def _update(self, in_grad, lr):
         w_delta = np.dot(self.in_array.transpose(), in_grad)
-        self._weight = self._weight - lr *  self._weight 
+        self._weight = self._weight - lr *  w_delta
         
     def backward(self, in_grad, lr):
         out_grad = np.dot(in_grad, self._weight.transpose())

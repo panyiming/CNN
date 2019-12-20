@@ -32,12 +32,10 @@ class Network:
 def save(net, epoch, model_name, save_root):
     model_name = '{}-{}.json'.format(model_name, str(epoch).zfill(4))
     file_path = os.path.join(save_root, model_name)
-    idx = 0
     with open(file_path, 'w') as f:
         for l in net.layers:
             l_params = l.get_params()
             f.write(json.dumps(l_params)+'\n')
-            idx += 1
 
 
 def load(path):

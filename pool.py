@@ -67,7 +67,6 @@ class Pool:
         return out_array
 
     def backward(self, in_grad, lr):
-        print(np.max(in_grad))
         out_grad = np.zeros_like(self.pad_array)
         n, out_c, out_h, out_w = in_grad.shape
         for h in range(out_h):
