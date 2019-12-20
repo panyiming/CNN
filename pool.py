@@ -46,29 +46,30 @@ class Pool:
         return array
 
     def forward(self, in_array):
-        n, in_c, _, _  = in_array.shape
+        n = in_array.shape[0]
+        in_c = self._inshape[0]
         out_c, out_h, out_w = self._outshape
-        pad_array = self._padding(in_array)
-        self.pad_array = pad_array
+        self._pad_array = self._padding(in_array)
         out_array = np.zeros((n, out_c, out_h, out_w))
-        self._max_idx = np.zeros_like(pad_array, dtype=np.int32)
+        self._max_idx = np.zeros_like(self._pad_array, dtype=np.int32)
         for h in range(out_h):
             for w in range(out_w):
                 st_w = self._s * w
                 st_h = self._s * h
                 ed_w = st_w + self._kw
                 ed_h = st_h + self._kw
-                sub_array = pad_array[:, :, st_h:ed_h, st_w:ed_w]
-                max_array = np.max(pad_array[:, :, st_h:ed_h, st_w:ed_w], axis=(2, 3))
+                sub_array = self._pad_array[:, :, st_h:ed_h, st_w:ed_w]
+                max_array = np.max(self._pad_array[:, :, st_h:ed_h, st_w:ed_w], axis=(2, 3))
+                max_array = max_array.reshape(n, in_c, 1, 1)
                 out_array[:, :, h, w] = max_array.reshape(n, out_c)
-                sub_shape = sub_array.shape
-                max_array_reshape = np.broadcast_to(max_array.reshape(n, in_c, 1, 1), sub_shape)
-                self._max_idx[:, :, st_h:ed_h, st_w:ed_w] = (sub_array == max_array_reshape)
+                max_array = np.broadcast_to(max_array, sub_array.shape)
+                self._max_idx[:, :, st_h:ed_h, st_w:ed_w] = (sub_array == max_array)
         return out_array
 
     def backward(self, in_grad, lr):
-        out_grad = np.zeros_like(self.pad_array)
-        n, out_c, out_h, out_w = in_grad.shape
+        n = in_grad.shape[0]
+        out_c, out_h, out_w = self._outshape
+        out_grad = np.zeros_like(self._pad_array)
         for h in range(out_h):
             for w in range(out_w):
                 st_w = self._s * w
