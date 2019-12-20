@@ -25,6 +25,8 @@ def train(net, img_paths, inshape, model_name,
     for epoch_i in range(epoch):
         dataloader.reset()
         step = 0
+        if epoch_i in step_epoch:
+            lr = lr * 0.1
         for imgs, labels in dataloader.load_imgs():
             step += 1
             pred = net.forward(imgs)
