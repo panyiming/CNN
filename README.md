@@ -1,1 +1,1 @@
-# cnn implement with numpy
+# CNN implementation with Numpy
