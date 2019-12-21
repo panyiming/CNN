@@ -65,6 +65,7 @@ def train_main(conf):
           conf.batch_size, conf.epoch, conf.lr,
           conf.step_epoch, conf.class_num)
 
+
 def test_main(conf):
     test(conf.model_path, conf.imgs_path, 
          conf.inshape, conf.batch_size, conf.class_num)

@@ -1,6 +1,7 @@
 # encoding: utf-8
 # network
 
+
 import os
 import json
 from cov import Cov
@@ -9,6 +10,7 @@ from flatten import Flatten
 from linear import Linear
 from relu import Relu
 from loss import Softmax, acc
+
 
 class Network:
 
