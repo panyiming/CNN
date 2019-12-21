@@ -18,6 +18,7 @@ class Cov:
                              'out_c':out_c, 'inshape':inshape}
         self.init_weight()
         self.get_outshape()
+        self._use_col = True
     
     def init_weight(self, weight=None):
         if weight == None:
@@ -58,9 +59,22 @@ class Cov:
         ed_h = h - p_w
         array = array[:, :, st_h:ed_h, st_w: ed_w]
         return array
-    
 
     def forward(self, in_array):
+        if self._use_col:
+            out_array = self._forward_col(in_array)
+        else:
+            out_array = self._forward(in_array)
+        return out_array
+
+    def backward(self, in_grad, lr):
+        if self._use_col:
+            out_grad = self._backward_col(in_grad, lr)
+        else:
+            out_grad = self._backward(in_grad, lr)
+        return out_grad
+        
+    def _forward_col(self, in_array):
         n = in_array.shape[0]
         in_c = self._inshape[0]
         out_c, out_h, out_w = self._outshape
@@ -73,7 +87,7 @@ class Cov:
         out_array = out_array.transpose(3, 0, 1, 2)
         return out_array
 
-    def backward(self, in_grad, lr):
+    def _backward_col(self, in_grad, lr):
         n = in_grad.shape[0]
         out_c = self._outshape[0]
         ingrad_reshape = in_grad.transpose(1, 2, 3, 0).reshape(out_c, -1)
@@ -152,4 +166,27 @@ class Cov:
         out_grad = self._reverse_padding(out_grad)
         self._update(in_grad, lr)
         return out_grad
+
+
+if __name__ == '__main__':
+    cov = Cov(3, 0, 1, 16, [3, 112, 112])
+    outshape = cov.get_outshape()
+    in_array = np.random.rand(128, 3, 112, 112)
+    grad_shape = [128, 16, outshape[2], outshape[2]]
+    in_grad = np.random.rand(128, 16, 110, 110)
+    import time
+    t1 = time.time()
+    for i in range(10):
+        print(cov._outshape)
+        cov.forward(in_array)
+    t2 = time.time()
+    print((t2-t1)/10)
+    t1 = time.time()
+    for i in range(10):
+        print(cov._outshape)
+        cov.backward(in_grad, 0.1)
+    t2 = time.time()
+    print((t2-t1)/10)
+
+
 

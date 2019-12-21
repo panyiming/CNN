@@ -15,6 +15,7 @@ class Pool:
         self._inshape = inshape
         self._init_params = {'kw':kw, 'pad':pad, 's':s, 'inshape':inshape}
         self.get_outshape()
+        self._use_col = False
     
     def get_params(self):
         params = {'class':'Pool'}
@@ -45,8 +46,23 @@ class Pool:
         ed_h = h - p_w
         array = array[:, :, st_w:ed_w, st_h: ed_h]
         return array
-
+    
     def forward(self, in_array):
+        if self._use_col:
+            out_array = self._forward_col(in_array)
+        else:
+            out_array = self._forward(in_array)
+
+        return out_array
+    
+    def backward(self, in_grad, lr):
+        if self._use_col:
+            out_grad = self._backward_col(in_grad, lr)
+        else:
+            out_grad = self._backward(in_grad, lr)
+        return out_grad
+
+    def _forward_col(self, in_array):
         n = in_array.shape[0]
         in_c, in_h, in_w = self._inshape
         out_c, out_h, out_w = self._outshape
@@ -63,7 +79,7 @@ class Pool:
         self._pad_shape = pad_shape
         return out_array
 
-    def backward(self, in_grad, lr):
+    def _backward_col(self, in_grad, lr):
         n = in_grad.shape[0]
         in_c, in_h, in_w = self._inshape
         out_c, out_h, out_w = self._outshape
@@ -113,3 +129,24 @@ class Pool:
         out_grad = self._max_idx * out_grad
         out_grad = self._reverse_padding(out_grad)
         return out_grad
+
+if __name__ == '__main__':
+    inshape = [16, 112, 112]
+    pool = Pool(2, 2, 0, inshape)
+    outshape = pool.get_outshape()
+    print(outshape)
+    in_array = np.random.rand(128, 16, 112, 112)
+    in_grad = np.random.rand(128, 16, 56, 56)
+    import time
+    t1 = time.time()
+    for i in range(10):
+        print(pool._outshape)
+        pool.forward(in_array)
+    t2 = time.time()
+    print((t2-t1)/10)
+    t1 = time.time()
+    for i in range(10):
+        print(pool._outshape)
+        pool.backward(in_grad, 0.1)
+    t2 = time.time()
+    print((t2-t1)/10)
