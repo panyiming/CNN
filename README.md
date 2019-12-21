@@ -50,11 +50,11 @@ sh run_test.sh
 
 |operation|im2col|inshape|outshape|params|time(ms)|
 |:--:|:--:|:--:|:--:|:--:|:--:|
-|convolution forward|no|(128, 3, 112, 112)|(128, 16, 110, 110)|kenerl=(3, 3), stride=1, pad=0|12.3799|
-|convolution forward|yes|(128, 3, 112, 112)|(128, 16, 110, 110)|kenerl=(3, 3), stride=1, pad=0|0.5719|
-|convolution backward|no|(128, 16, 110, 110)|(128, 3, 112, 112)|kenerl=(3, 3), stride=1, pad=0|31.4386|
-|convolution backward|yes|(128, 16, 110, 110)|(128, 3, 112, 112)|kenerl=(3, 3), stride=1, pad=0|4.6786|
-|maxpool forward|no|(128, 16, 112, 112)|(128, 16, 56, 56)|kenerl=(2, 2), stride=2, pad=0|1.7381|
-|maxpool forward|yes|(128, 16, 112, 112)|(128, 16, 56, 56)|kenerl=(2, 2), stride=2, pad=0|2.9103|
-|maxpool backward|no|(128, 16, 56, 56)|(128, 16, 112, 112)|kenerl=(2, 2), stride=2, pad=0|0.7157|
-|maxpool backward|yes|(128, 16, 56, 56)|(128, 16, 112, 112)|kenerl=(2, 2), stride=2, pad=0|6.0505|
+|convolution forward|no|(128, 3, 112, 112)|(128, 16, 110, 110)|kernel=(3, 3), stride=1, pad=0|12.3799|
+|convolution forward|yes|(128, 3, 112, 112)|(128, 16, 110, 110)|kernel=(3, 3), stride=1, pad=0|0.5719|
+|convolution backward|no|(128, 16, 110, 110)|(128, 3, 112, 112)|kernel=(3, 3), stride=1, pad=0|31.4386|
+|convolution backward|yes|(128, 16, 110, 110)|(128, 3, 112, 112)|kernel=(3, 3), stride=1, pad=0|4.6786|
+|maxpool forward|no|(128, 16, 112, 112)|(128, 16, 56, 56)|kernel=(2, 2), stride=2, pad=0|1.7381|
+|maxpool forward|yes|(128, 16, 112, 112)|(128, 16, 56, 56)|kernel=(2, 2), stride=2, pad=0|2.9103|
+|maxpool backward|no|(128, 16, 56, 56)|(128, 16, 112, 112)|kernel=(2, 2), stride=2, pad=0|0.7157|
+|maxpool backward|yes|(128, 16, 56, 56)|(128, 16, 112, 112)|kernel=(2, 2), stride=2, pad=0|6.0505|
