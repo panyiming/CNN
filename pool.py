@@ -3,6 +3,7 @@
 
 import math
 import numpy as np
+from im2col import im2col, col2im
 
 
 class Pool:
@@ -47,6 +48,36 @@ class Pool:
 
     def forward(self, in_array):
         n = in_array.shape[0]
+        in_c, in_h, in_w = self._inshape
+        out_c, out_h, out_w = self._outshape
+        self._pad_array = self._padding(in_array)
+        pad_array_reshape = self._pad_array.reshape(n*in_c, 1, in_h, in_w)
+        pad_shape = pad_array_reshape.shape[1:]
+        self._pad_array_col = im2col(pad_array_reshape, self._kw, self._kw,
+                              self._s, pad_shape, self._outshape)
+        max_idx = np.argmax(self._pad_array_col, axis=0)
+        out_array = self._pad_array_col[max_idx, range(max_idx.size)]
+        out_array = out_array.reshape(out_h, out_w, n, out_c)
+        out_array = out_array.transpose(2, 3, 0, 1)
+        self._max_idx = max_idx
+        self._pad_shape = pad_shape
+        return out_array
+
+    def backward(self, in_grad, lr):
+        n = in_grad.shape[0]
+        in_c, in_h, in_w = self._inshape
+        out_c, out_h, out_w = self._outshape
+        out_grad_col = np.zeros_like(self._pad_array_col)
+        in_grad = in_grad.transpose(2, 3, 0, 1).ravel()
+        out_grad_col[self._max_idx, range(self._max_idx.size)] = in_grad
+        out_grad = col2im(out_grad_col, n*in_c, self._pad_shape, self._outshape, 
+                          self._kw, self._kw, self._pad, self._s)
+        out_grad = out_grad.reshape(self._pad_array.shape)
+        out_grad = self._reverse_padding(out_grad)
+        return out_grad
+
+    def _forward(self, in_array):
+        n = in_array.shape[0]
         in_c = self._inshape[0]
         out_c, out_h, out_w = self._outshape
         self._pad_array = self._padding(in_array)
@@ -59,14 +90,14 @@ class Pool:
                 ed_w = st_w + self._kw
                 ed_h = st_h + self._kw
                 sub_array = self._pad_array[:, :, st_h:ed_h, st_w:ed_w]
-                max_array = np.max(self._pad_array[:, :, st_h:ed_h, st_w:ed_w], axis=(2, 3))
+                max_array = np.max(sub_array, axis=(2, 3))
                 max_array = max_array.reshape(n, in_c, 1, 1)
                 out_array[:, :, h, w] = max_array.reshape(n, out_c)
                 max_array = np.broadcast_to(max_array, sub_array.shape)
                 self._max_idx[:, :, st_h:ed_h, st_w:ed_w] = (sub_array == max_array)
         return out_array
 
-    def backward(self, in_grad, lr):
+    def _backward(self, in_grad, lr):
         n = in_grad.shape[0]
         out_c, out_h, out_w = self._outshape
         out_grad = np.zeros_like(self._pad_array)

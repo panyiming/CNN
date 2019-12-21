@@ -3,6 +3,7 @@
 
 import math
 import numpy as np
+from im2col import col2im, im2col
 
 
 class Cov:
@@ -58,7 +59,37 @@ class Cov:
         array = array[:, :, st_h:ed_h, st_w: ed_w]
         return array
     
+
     def forward(self, in_array):
+        n = in_array.shape[0]
+        in_c = self._inshape[0]
+        out_c, out_h, out_w = self._outshape
+        pad_array = self._padding(in_array)
+        self._pad_array_col = im2col(pad_array, self._kw, self._kw, 
+                              self._s, self._inshape, self._outshape)
+        weight_col = self._weight.reshape(out_c, -1)
+        out_array = np.dot(weight_col, self._pad_array_col)
+        out_array = out_array.reshape(out_c, out_h, out_w, n)
+        out_array = out_array.transpose(3, 0, 1, 2)
+        return out_array
+
+    def backward(self, in_grad, lr):
+        n = in_grad.shape[0]
+        out_c = self._outshape[0]
+        ingrad_reshape = in_grad.transpose(1, 2, 3, 0).reshape(out_c, -1)
+        w_delta = np.dot(ingrad_reshape, self._pad_array_col.T)
+        w_delta = w_delta.reshape(self._weight.shape)
+
+        weight_reshape = self._weight.reshape(out_c, -1)
+        out_grad = np.dot(weight_reshape.T, ingrad_reshape)
+        out_grad = col2im(out_grad, n, self._inshape, self._outshape, 
+                          self._kw, self._kw, self._pad, self._s)
+
+        self._weight -= w_delta * lr
+        out_grad = self._reverse_padding(out_grad)
+        return out_grad
+    
+    def _forward(self, in_array):
         n = in_array.shape[0]
         in_c = self._inshape[0]
         out_c, out_h, out_w = self._outshape
@@ -78,7 +109,7 @@ class Cov:
                         mul_sum = np.sum(mul, axis=(1, 2))
                         out_array[:, c_out, h, w]  +=  mul_sum
         return out_array
-
+    
     def _update(self, in_grad, lr):
         n = in_grad.shape[0]
         in_c = self._inshape[0]
@@ -100,7 +131,7 @@ class Cov:
                         w_delta[c_out, c_in, :, :] += mul_sum
         self._weight = self._weight - lr * w_delta
 
-    def backward(self, in_grad, lr):
+    def _backward(self, in_grad, lr):
         n = in_grad.shape[0]
         in_c = self._inshape[0]
         out_grad = np.zeros_like(self._pad_array)
@@ -121,3 +152,4 @@ class Cov:
         out_grad = self._reverse_padding(out_grad)
         self._update(in_grad, lr)
         return out_grad
+
