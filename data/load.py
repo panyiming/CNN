@@ -3,7 +3,6 @@
 import os
 import struct
 import numpy as np
-import matplotlib.pyplot as plt
 from PIL import Image
 
 def load_mnist_image(path, filename, type = 'train'):
