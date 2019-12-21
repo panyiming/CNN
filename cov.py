@@ -187,6 +187,3 @@ if __name__ == '__main__':
         cov.backward(in_grad, 0.1)
     t2 = time.time()
     print((t2-t1)/10)
-
-
-
