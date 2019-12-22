@@ -32,7 +32,7 @@ def train(net, img_paths, inshape, model_name,
             pred = net.forward(imgs)
             ac = acc(pred, labels, class_num)
             if step % log_step == 0:
-                logger.info('[{}/{}]====[{}/{}]====[lr:{}]====[{}]'.format(
+                logger.info('[epoch:{}/{}]====[step:{}/{}]====[lr:{}]====[acc:{}]'.format(
                             epoch_i, epoch, step, step_num, lr, ac))
             net.backward(labels, lr)
         save(net, epoch_i, model_name, save_root)
